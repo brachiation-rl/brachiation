@@ -1,0 +1,82 @@
+<mujoco>
+    <compiler angle="degree" inertiafromgeom="true"/>
+    <default>
+        <joint armature="0.01" damping=".1" limited="true"/>
+        <geom conaffinity="3" condim="3" contype="3" friction="1.2 0.1 0.1" density="700" rgba="0.6 0.63 0.66 1"/>
+    </default>
+    <worldbody>
+        <body name="gibbon3d" pos="0 0 0">
+            <joint armature="0" axis="1 0 0" damping="0" limited="false" name="ignorex" pos="0 0 0" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 0 1" damping="0" limited="false" name="ignorez" pos="0 0 0" stiffness="0" type="slide"/>
+            <joint armature="0" axis="0 1 0" damping="0" limited="false" name="ignorey" pos="0 0 0" stiffness="0" type="hinge"/>
+            <body name="torso" pos="0 0 0.03">
+                <geom pos="0 0 0" size=".08" conaffinity="1" contype="1" type="sphere"/>
+            </body>
+            <body name="head" pos="0 0 0.16">
+                <geom pos="0 0 0" size=".065" type="sphere"/>
+            </body>
+            <geom pos="0 -0.1 0.07" size=".04" conaffinity="0" contype="0" type="sphere"/>
+            <geom pos="0 0.1 0.07" size=".04" conaffinity="0" contype="0" type="sphere"/>
+            <body name="waist" pos="0 0 -0.15">
+
+                <body name="pelvis_marker" pos="0 0 0.06">
+                    <geom pos="0 0 0" size="0.01" conaffinity="0" contype="0" type="sphere" mass="0" />
+                </body>
+                <joint axis="0 1 0" name="abdomen_y" pos="0 0 0.095" range="-80 15" stiffness="0" type="hinge"/>
+                <body name="pelvis" pos="0 0 -0.04">
+                    <geom pos="0 0 0.1" size="0.07" conaffinity="2" contype="2" type="sphere"/>
+                    <body name="right_thigh" pos="0 -0.065 0.04">
+                        <joint axis="0 1 0" name="right_hip_y" pos="0 0 0" range="-100 20" stiffness="0" type="hinge"/>
+                        <geom fromto="0 0 0 0 0 -.07" size="0.0375" type="capsule"/>
+                        <body name="right_shin" pos="0 0 -0.12">
+                            <joint axis="0 1 0" name="right_knee" pos="0 0 .02" range="-5 160" stiffness="0" type="hinge"/>
+                            <geom fromto="0 0 0 0 0 -.07" size="0.035" type="capsule"/>
+                            <body name="right_foot" pos="0 0 -0.12">
+                                <joint axis="0 1 0" name="right_ankle" pos="0 0 0" range="-110 -50" stiffness="0" type="hinge"/>
+                                <geom fromto="-0.01 0.02 0 -0.01 0.03 -0.08" type="capsule" size="0.03"/>
+                                <geom fromto="-0.01 -0.02 0 -0.01 -0.03 -0.08" type="capsule" size="0.03"/>
+                            </body>
+                        </body>
+                    </body>
+                    <body name="left_thigh" pos="0 0.065 0.04">
+                        <joint axis="0 1 0" name="left_hip_y" pos="0 0 0" range="-100 20" stiffness="0" type="hinge"/>
+                        <geom fromto="0 0 0 0 0 -.07" size="0.0375" type="capsule"/>
+                        <body name="left_shin" pos="0 0 -0.12">
+                            <joint axis="0 1 0" name="left_knee" pos="0 0 .02" range="-5 160" stiffness="0" type="hinge"/>
+                            <geom fromto="0 0 0 0 0 -.07" size="0.035" type="capsule"/>
+                            <body name="left_foot" pos="0 0 -0.12">
+                                <joint axis="0 1 0" name="left_ankle" pos="0 0 0" range="-110 -50" stiffness="0" type="hinge"/>
+                                <geom fromto="-0.01 0.02 0 -0.01 0.03 -0.08" type="capsule" size="0.03"/>
+                                <geom fromto="-0.01 -0.02 0 -0.01 -0.03 -0.08" type="capsule" size="0.03"/>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+            <body name="right_upper_arm" pos="0 -0.16 0.08">
+                <joint axis="0 1 0" name="right_shoulder_y" pos="0 0 0" range="-240 35" limited="false" stiffness="0" type="hinge"/>
+                <geom fromto="0 0 0 0 0 -.23" size="0.035" type="capsule"/>
+                <body name="right_lower_arm" pos="0 0 -.26">
+                    <joint axis="0 1 0" name="right_elbow_y" pos="0 0 0" range="-160 5" stiffness="0" type="hinge"/>
+                    <geom fromto="0 0 0 0 0 -.23" size="0.035" type="capsule"/>
+                    <body name="right_hand" pos="0 0 -.28">
+                        <joint axis="0 1 0" name="right_wrist" pos="0 0 0" range="-90 90" stiffness="0" type="hinge"/>
+                        <geom pos="0 0 0" size=".04" type="sphere" mass="0.4"/>
+                    </body>
+                </body>
+            </body>
+            <body name="left_upper_arm" pos="0 0.16 0.08">
+                <joint axis="0 1 0" name="left_shoulder_y" pos="0 0 0" range="-240 35" limited="false" stiffness="0" type="hinge"/>
+                <geom fromto="0 0 0 0 0 -.23" size="0.035" type="capsule"/>
+                <body name="left_lower_arm" pos="0 0 -.26">
+                    <joint axis="0 1 0" name="left_elbow_y" pos="0 0 0" range="-160 5" stiffness="0" type="hinge"/>
+                    <geom fromto="0 0 0 0 0 -.23" size="0.035" type="capsule"/>
+                    <body name="left_hand" pos="0 0 -.28">
+                        <joint axis="0 1 0" name="left_wrist" pos="0 0 0" range="-90 90" stiffness="0" type="hinge"/>
+                        <geom pos="0 0 0" size=".04" type="sphere" mass="0.4"/>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>

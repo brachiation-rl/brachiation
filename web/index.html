@@ -1,0 +1,395 @@
+<!doctype html>
+<html>
+<head>
+  <script src="/static/pixi.min.js"></script>
+</head>
+<body>
+  <script>
+    (async () => {
+
+      // Create the application helper and add its render target to the page
+      const WIDTH = 1800;
+      const HEIGHT = 800;
+      const MSCALE = 0.5;
+      const WSCALE = 200;
+      const XOFFSET = 100;
+      const YOFFSET = 100;
+
+      function M2PX (x) { return x * WSCALE + XOFFSET; }
+      function M2PY (y) { return -y * WSCALE + HEIGHT / 2 + YOFFSET; }
+
+      let app = new PIXI.Application({ width: WIDTH, height: HEIGHT, backgroundColor: 0xffffff });
+      app.stage.sortableChildren = true;
+      document.body.appendChild(app.view);
+
+      const TRAJECTORY_FILES = [
+        "2022-01-26-11-59-07_978.json",
+        "2022-01-26-11-59-07_1817.json",
+        "2022-01-26-11-59-07_1322.json",
+        "2022-01-26-11-59-07_623.json",
+        "2022-01-26-11-59-07_870.json",
+        "2022-01-26-11-59-07_327.json",
+        "2022-01-26-11-59-07_1028.json",
+        "2022-01-26-11-59-07_1319.json",
+        "2022-01-26-11-59-07_1147.json",
+        "2022-01-26-11-59-07_1315.json",
+        "2022-01-26-11-59-07_39.json",
+        "2022-01-26-11-59-07_969.json",
+        "2022-01-26-11-59-07_1574.json",
+        "2022-01-26-11-59-07_756.json",
+        "2022-01-26-11-59-07_164.json",
+        "2022-01-26-11-59-07_1381.json",
+        "2022-01-26-11-59-07_1942.json",
+        "2022-01-26-11-59-07_343.json",
+        "2022-01-26-11-59-07_1528.json",
+        "2022-01-26-11-59-07_1262.json",
+        "2022-01-26-11-59-07_740.json",
+        "2022-01-26-11-59-07_876.json",
+        "2022-01-26-11-59-07_677.json",
+        "2022-01-26-11-59-07_786.json",
+        "2022-01-26-11-59-07_1660.json",
+        "2022-01-26-11-59-07_467.json",
+        "2022-01-26-11-59-07_620.json",
+        "2022-01-26-11-59-07_169.json",
+        "2022-01-26-11-59-07_1812.json",
+        "2022-01-26-11-59-07_1167.json",
+        "2022-01-26-11-59-07_804.json",
+        "2022-01-26-11-59-07_352.json",
+        "2022-01-26-11-59-07_90.json",
+        "2022-01-26-11-59-07_48.json",
+        "2022-01-26-11-59-07_1882.json",
+        "2022-01-26-11-59-07_965.json",
+        "2022-01-26-11-59-07_541.json",
+        "2022-01-26-11-59-07_1614.json",
+        "2022-01-26-11-59-07_539.json",
+        "2022-01-26-11-59-07_1009.json",
+        "2022-01-26-11-59-07_1733.json",
+        "2022-01-26-11-59-07_1757.json",
+        "2022-01-26-11-59-07_196.json",
+        "2022-01-26-22-36-39_28.json", // planning
+        "2022-01-26-22-45-59_150.json", // planning 
+        "planner_value_only_failed.json",
+        "planner_simple_only_failed.json",
+      ]
+
+      
+      async function selectTrajectory() {
+        const fileIndex = (Math.random() * TRAJECTORY_FILES.length) | 0;
+        let filePath = TRAJECTORY_FILES[fileIndex];
+        const response = await fetch(`/static/trajectories/${filePath}`);
+        return await response.json();
+      }
+
+      function updateHandholds() {
+        for (let i = 0; i < TRAJECTORY_DATA.handholds.length; i++) {
+          const handhold = PIXI.Sprite.from(`${ASSET_PATH}/handhold.png`);
+          handhold.anchor.set(0.5);
+          handhold.scale.set(MSCALE * 1.2);
+
+          let [x, y, z] = TRAJECTORY_DATA.handholds[i];
+          handhold.zIndex = -3;
+          handhold.x = M2PX(x);
+          handhold.y = M2PY(z);          
+          app.stage.addChild(handhold);
+        }
+      }
+
+      function drawLine(x0, y0, x1, y1, c, thickness, zIndex) {
+        const path = new PIXI.Graphics();
+        path.lineStyle(thickness, c, 1);
+        path.moveTo(x0, y0);
+        path.lineTo(x1, y1);
+        path.zIndex = zIndex;
+        app.stage.addChild(path);
+      }
+
+      const ASSET_PATH = "/static/assets";
+
+      async function createBackground() {
+        const path = `${ASSET_PATH}/background1.avif`;
+
+        const [width, height] = await (() => {
+          return new Promise((resolve) => {
+            let img = new Image();
+            img.onload = () => resolve([img.width, img.height]);
+            img.src = path;
+          })
+        })();
+
+        const background = PIXI.Sprite.from(path);
+        const blurFilter = new PIXI.filters.BlurFilter();
+        background.filters = [blurFilter];
+        background.zIndex = -10;
+        background.alpha = 0.08;
+        blurFilter.blur = 10;
+        background.x = -WIDTH / 2;
+        background.width = width * (HEIGHT / height);
+        background.height = HEIGHT;
+        app.stage.addChild(background);
+        return background;
+      }
+
+      // Global variables
+      let TRAJECTORY_DATA;
+      let CHARACTER_LINKS;
+      let GRAB_MARKER;
+      let BACKGROUND;
+      let ELAPSED_TIME = 0.0;
+      let PLAYBACK_SPEED = 1.0;
+      let PAUSE_PLAYBACK = false;
+      let CAMERA_TRACK = true;
+      let SHOW_HISTORY = false;
+      let SHOW_BACKGROUND = false;
+
+      const MAX_RECORDINGS_SAVED = 10;
+      let RECORDING = false;
+      let RECORDER = false;
+      let RECORDER_DATA;
+
+      function createCharacter() {
+        const spriteFiles = [
+          "torso.png",
+          "head.png",
+          "pelvis.png",
+          "rthigh.png",
+          "rshin.png",
+          "rfoot.png",
+          "lthigh.png",
+          "lshin.png",
+          "lfoot.png",
+          "ruarm.png",
+          "rlarm.png",
+          "rhand.png",
+          "luarm.png",
+          "llarm.png",
+          "lhand.png"
+        ];
+
+        let links = [];
+        for (let i = 0; i < spriteFiles.length; i++) {
+          const link = PIXI.Sprite.from(`${ASSET_PATH}/${spriteFiles[i]}`);
+          link.anchor.set(0.5);
+          link.scale.set(MSCALE);
+          link.y = 10000;
+          if ((i >= 9 && i <= 11) || (i >= 3 && i <= 5)) {
+            link.zIndex = -2;
+          }
+          app.stage.addChild(link);
+          links.push(link);
+        }
+
+        return links;
+      }
+
+      function createTerrain() {
+        if (TRAJECTORY_DATA.terrain) {
+          for (let i = 1; i < TRAJECTORY_DATA.terrain.length; i++) {
+            let [x0, y0] = TRAJECTORY_DATA.terrain[i - 1];
+            let [x1, y1] = TRAJECTORY_DATA.terrain[i + 0];
+            drawLine(M2PX(x0), M2PY(y0), M2PX(x1), M2PY(y1), 0xA75E09, 30, -9);
+          }
+        }
+      }
+
+      function saveRecording() {
+
+        // Don't do this the first time
+        if (RECORDER !== false) {
+          // Calling this saves the video
+          RECORDER.stop();
+        }
+
+        let videoElements = document.getElementsByTagName("video");
+        if (videoElements.length >= MAX_RECORDINGS_SAVED) {
+          videoElements[0].remove()
+        }
+
+        let stream = app.view.captureStream();
+        RECORDER = new MediaRecorder(stream, {
+          mimeType: 'video/webm',
+          videoBitsPerSecond: 8000000,
+        });
+
+        RECORDER.ondataavailable = function (event) {
+          RECORDER_DATA = [];
+          if (event.data && event.data.size) {
+            RECORDER_DATA.push(event.data);
+          }
+        };
+
+        RECORDER.onstop = () => {
+          const url = URL.createObjectURL(new Blob(RECORDER_DATA, { type: "video/webm" }));
+          let video = document.createElement("video");
+          video.style.display = "none";
+          video.src = url;
+          document.body.appendChild(video);
+        };
+
+        RECORDER.start();
+      }
+
+      // Clean up
+      async function resetScene() {
+        saveRecording();
+
+        while(app.stage.children[0]) { 
+          app.stage.removeChild(app.stage.children[0]);
+        }
+
+        ELAPSED_TIME = 0;
+        CHARACTER_LINKS = createCharacter();
+        TRAJECTORY_DATA = await selectTrajectory();
+        window.data = TRAJECTORY_DATA;
+        updateHandholds();
+        createTerrain();
+
+        GRAB_MARKER = PIXI.Sprite.from(`${ASSET_PATH}/grab_marker.png`);
+        GRAB_MARKER.anchor.set(0.5);
+        GRAB_MARKER.scale.set(MSCALE);
+        GRAB_MARKER.zIndex = 10;
+        GRAB_MARKER.y = 10000;
+        app.stage.addChild(GRAB_MARKER);
+
+        app.stage.pivot.x = 0;
+        app.stage.position.x = WIDTH / 2;
+        app.stage.pivot.y = HEIGHT / 2;
+        app.stage.position.y = HEIGHT / 2;
+        
+        if (SHOW_BACKGROUND) { BACKGROUND = createBackground(); }
+      }
+      await resetScene();
+      
+
+      app.ticker.add(async (delta) => {
+        if (PAUSE_PLAYBACK) { return; }
+
+        ELAPSED_TIME += 1 * PLAYBACK_SPEED;
+
+        // convert ELAPSED_TIME to integer
+        let frameIndex = ELAPSED_TIME | 0;
+
+        if (frameIndex >= TRAJECTORY_DATA.xys.length - 1) {
+          await resetScene();
+        }
+
+        const xys = TRAJECTORY_DATA.xys[frameIndex];
+        const ps = TRAJECTORY_DATA.rots[frameIndex];
+
+        for (let j = 0; j < ps.length; j++) {
+          const x = M2PX(xys[j][0]);
+          const y = M2PY(xys[j][1]);
+          CHARACTER_LINKS[j].x = x;
+          CHARACTER_LINKS[j].y = y;
+          CHARACTER_LINKS[j].rotation = ps[j];
+
+          if (CAMERA_TRACK) {
+            if (j == 0) {
+              app.stage.pivot.x = 0.9 * app.stage.pivot.x + 0.1 * x;
+              app.stage.position.x = WIDTH / 2;
+              // let hidx = TRAJECTORY_DATA.handhold_idx[frameIndex];
+              // let hy = TRAJECTORY_DATA.handholds[hidx][2];
+              // app.stage.pivot.y = 0.95 * app.stage.pivot.y + 0.05 * M2PY(hy);
+              // app.stage.position.y = HEIGHT / 2;
+            }
+          } else {
+            const flips = (x / WIDTH) | 0;
+            app.stage.pivot.x = WIDTH * flips;
+            app.stage.position.x = 0;
+          }
+
+          if (j == 0 && frameIndex > 0) {
+            let [x0, y0] = TRAJECTORY_DATA.xys[frameIndex - 1][j];
+            x0 = M2PX(x0);
+            y0 = M2PY(y0);
+            drawLine(x0, y0, x, y, 0xA75E09, 2, -1);
+          }
+
+          if (TRAJECTORY_DATA.is_grabbing && (j == 11 || j == 14)) {  
+            let [r, l] = TRAJECTORY_DATA.is_grabbing[frameIndex];
+
+            if ((j == 11 && r == 1) || (j == 14 && l == 1)) {
+              GRAB_MARKER.x = x;
+              GRAB_MARKER.y = y;
+            }
+
+            if (r == 0 && l == 0) {
+              GRAB_MARKER.y = 10000;
+            }
+
+          }
+        }
+
+        // Draw reference trajectory
+        if (frameIndex > 0 && TRAJECTORY_DATA.reference) {
+          let [x0, y0, z0] = TRAJECTORY_DATA.reference[frameIndex - 1];
+          let [x1, y1, z1] = TRAJECTORY_DATA.reference[frameIndex];
+
+          x0 = M2PX(x0);
+          x1 = M2PX(x1);
+          y0 = M2PY(z0);
+          y1 = M2PY(z1);
+          drawLine(x0, y0, x1, y1, 0x107AB0, 2, -1);
+        }
+
+        if (frameIndex % 30 == 0 && SHOW_HISTORY) {
+          CHARACTER_LINKS = createCharacter();
+        }
+      });
+
+      document.addEventListener("keydown", async function (event) {
+
+        switch (event.code) {
+          case "Space":
+            PAUSE_PLAYBACK = !PAUSE_PLAYBACK;
+            break;
+          case "KeyD":
+            CHARACTER_LINKS = createCharacter();
+            break;
+          case "KeyF":
+            CAMERA_TRACK = !CAMERA_TRACK;
+            break;
+          case "KeyG":
+            SHOW_BACKGROUND = !SHOW_BACKGROUND;
+            resetScene();
+            break;
+          case "KeyH":
+            SHOW_HISTORY = !SHOW_HISTORY;
+            break;
+          case "KeyR":
+            await resetScene();
+            break;
+          case "Minus":
+            PLAYBACK_SPEED -= 0.1;
+            PLAYBACK_SPEED = PLAYBACK_SPEED < 0.2 ? 0.2 : PLAYBACK_SPEED;
+            break;
+          case "Equal":
+            PLAYBACK_SPEED += 0.1;
+            PLAYBACK_SPEED = PLAYBACK_SPEED > 2.0 ? 2.0 : PLAYBACK_SPEED;
+            break;
+          case "Digit0":
+            PLAYBACK_SPEED = 1.0;
+            break;
+          case "F1":
+            let elements = document.getElementsByTagName("video");
+            let url = elements[elements.length - 1].src;
+            let tag = document.createElement("a");
+            tag.href = url;
+            tag.target = "_blank";
+
+            let parts = url.split("-");
+            tag.download = parts[parts.length - 1];
+            document.body.appendChild(tag);
+            tag.click();
+            tag.remove();
+            break;
+          default:
+            console.log(event.code);
+            break;
+        }
+      });
+
+    })();
+    
+  </script>
+</body>
+</html>
