@@ -8,9 +8,9 @@
 
     <meta property="og:title" content="Learning to Brachiate via Simplified Model Imitation">
     <meta property="og:description" content="Gibbon animation using reinforcement learning">
-    <meta property="og:image" content="/static/assets/og-brachiation.png">
+    <meta property="og:image" content="static/assets/og-brachiation.png">
     <meta property="og:type" content="website">
-    <meta name="twitter:card" content="/static/assets/og-brachiation.png">
+    <meta name="twitter:card" content="static/assets/og-brachiation.png">
     <meta property="og:url" content="https://brachiation-rl.github.io/">
     <link rel="canonical" href="https://brachiation-rl.github.io/">
 
@@ -149,7 +149,7 @@
       }
     </style>
 
-    <script src="/static/pixi.min.js"></script>
+    <script src="static/pixi.min.js"></script>
   </head>
   <body>
     <main>
@@ -165,9 +165,9 @@
       </div>
       <p>
         <picture>
-          <source srcset="/static/assets/teaser.avif" type="image/avif">
-          <source srcset="/static/assets/teaser.webp" type="image/webp">
-          <img alt="teaser-brachiation" src="/static/assets/teaser.png" width="3600" height="627">
+          <source srcset="static/assets/teaser.avif" type="image/avif">
+          <source srcset="static/assets/teaser.webp" type="image/webp">
+          <img alt="teaser-brachiation" src="static/assets/teaser.png" width="3600" height="627">
         </picture>
       </p>
       <p style="font-size: 1.4em;">
@@ -179,7 +179,7 @@
       </p>
 
       <h2>Video (coming soon!)</h2>
-      <div id="videoholder" style="background-image: url('/static/assets/og-brachiation.svg');">
+      <div id="videoholder" style="background-image: url('static/assets/og-brachiation.svg');">
         <button type="button" class="lty-playbtn" aria-label="Play: Video"></button>
       </div>
 
@@ -281,7 +281,7 @@
         async function selectTrajectory() {
           const fileIndex = (Math.random() * TRAJECTORY_FILES.length) | 0;
           let filePath = TRAJECTORY_FILES[fileIndex];
-          const response = await fetch(`/static/trajectories/${filePath}`);
+          const response = await fetch(`static/trajectories/${filePath}`);
           return await response.json();
         }
 
@@ -308,7 +308,7 @@
           app.stage.addChild(path);
         }
 
-        const ASSET_PATH = "/static/assets";
+        const ASSET_PATH = "static/assets";
 
         // Global variables
         let TRAJECTORY_DATA;
