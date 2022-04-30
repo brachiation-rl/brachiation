@@ -8,11 +8,11 @@
 
     <meta property="og:title" content="Learning to Brachiate via Simplified Model Imitation">
     <meta property="og:description" content="Gibbon animation using reinforcement learning">
-    <meta property="og:image" content="static/assets/og-brachiation.png">
+    <meta property="og:image" content="https://brachiation-rl.github.io/brachiation/static/assets/og-brachiation.png">
     <meta property="og:type" content="website">
-    <meta name="twitter:card" content="static/assets/og-brachiation.png">
-    <meta property="og:url" content="https://brachiation-rl.github.io/">
-    <link rel="canonical" href="https://brachiation-rl.github.io/">
+    <meta name="twitter:card" content="https://brachiation-rl.github.io/brachiation/static/assets/og-brachiation.png">
+    <meta property="og:url" content="https://brachiation-rl.github.io/brachiation/">
+    <link rel="canonical" href="https://brachiation-rl.github.io/brachiation/">
 
     <style>
       :root {
@@ -185,7 +185,7 @@
 
       <h2 id="demo">Web Demo</h2>
       <p>
-        This demo is built using <a href="https://pixijs.com/">PixiJS</a>. Please refer to the paper for more details.
+        This demo is built using <a href="https://pixijs.com/">PixiJS</a>. The motions are pre-recorded kinematic trajectories; please refer to the code for pretrained controllers and physics environments. See paper for more details.
         <ul style="list-style-type: none;">
           <li><span class="keycap">SPACE</span>: pause / play</li>
           <li><span class="keycap">R</span>: reset</li>
@@ -316,6 +316,7 @@
         let GRAB_MARKER;
         let ELAPSED_TIME = 0.0;
         let PLAYBACK_SPEED = 1.0;
+        let SPEED_TEXT;
         let PAUSE_PLAYBACK = false;
         let CAMERA_TRACK = false;
         let SHOW_HISTORY = false;
@@ -390,6 +391,11 @@
           GRAB_MARKER.y = 10000;
           app.stage.addChild(GRAB_MARKER);
 
+          let size = window.getComputedStyle(document.getElementsByTagName("p")[0]).fontSize;
+          SPEED_TEXT = new PIXI.Text("", {fontSize: size, fill : 0xff1010});
+          SPEED_TEXT.text = `    Speed: ${Math.round(PLAYBACK_SPEED * 10) / 10}x`;
+          app.stage.addChild(SPEED_TEXT);
+
           app.stage.pivot.x = 0;
           app.stage.position.x = WIDTH / 2;
           app.stage.pivot.y = HEIGHT / 2;
@@ -397,8 +403,11 @@
         }
         await resetScene();
 
-        window.onresize = async function()
-        {
+        window.onresize = (() => {
+          let timeout, context, timestamp;
+          let wait = 100;
+
+          let callback = async () => {
             clientWidth = document.documentElement.clientWidth;
             ratio = clientWidth / DEFAULT_WIDTH;
             WIDTH = clientWidth;
@@ -409,8 +418,28 @@
             YOFFSET = DEFAULT_YOFFSET * ratio;
             app.renderer.resize(WIDTH, HEIGHT);
             await resetScene();
-        }
-        
+            app.ticker.start();
+          }
+
+          function later() {
+            let last = Date.now() - timestamp;
+
+            if (last < wait && last >= 0) {
+              timeout = setTimeout(later, wait - last);
+            } else {
+              timeout = null;
+              callback.apply(null);
+            }
+          };
+
+          let debounced = function(){
+            timestamp = Date.now();
+            app.ticker.stop();
+            if (!timeout) timeout = setTimeout(later, wait);
+          };
+
+          return debounced;
+        })();
 
         app.ticker.add(async (delta) => {
           if (PAUSE_PLAYBACK) { return; }
@@ -442,10 +471,13 @@
                 let hy = TRAJECTORY_DATA.handholds[hidx][2];
                 app.stage.pivot.y = 0.95 * app.stage.pivot.y + 0.05 * M2PY(hy);
                 app.stage.position.y = HEIGHT / 2;
+                SPEED_TEXT.position.x = app.stage.pivot.x - WIDTH / 2;
+                SPEED_TEXT.position.y = app.stage.pivot.y - HEIGHT / 2;
               }
             } else {
               const flips = (x / WIDTH) | 0;
               app.stage.pivot.x = WIDTH * flips;
+              SPEED_TEXT.position.x = app.stage.pivot.x;
               app.stage.position.x = 0;
             }
 
@@ -509,13 +541,19 @@
             case "Minus":
               PLAYBACK_SPEED -= 0.1;
               PLAYBACK_SPEED = PLAYBACK_SPEED < 0.2 ? 0.2 : PLAYBACK_SPEED;
+              SPEED_TEXT.text = `    Speed: ${Math.round(PLAYBACK_SPEED * 10) / 10}x`;
+              SPEED_TEXT.updateText();
               break;
             case "Equal":
               PLAYBACK_SPEED += 0.1;
               PLAYBACK_SPEED = PLAYBACK_SPEED > 2.0 ? 2.0 : PLAYBACK_SPEED;
+              SPEED_TEXT.text = `    Speed: ${Math.round(PLAYBACK_SPEED * 10) / 10}x`;
+              SPEED_TEXT.updateText();
               break;
             case "Digit0":
               PLAYBACK_SPEED = 1.0;
+              SPEED_TEXT.text = `    Speed: ${Math.round(PLAYBACK_SPEED * 10) / 10}x`;
+              SPEED_TEXT.updateText();
               break;
           }
         });
