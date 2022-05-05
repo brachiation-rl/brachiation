@@ -456,9 +456,9 @@ class Gibbon2DPointMassEnv(gym.Env):
         self.is_rendered = kwargs.get("render", False)
         self.num_parallel = kwargs.get("num_parallel", 4)
 
-        self.lookahead = kwargs.get("lookahead")
-        self.min_grab_duration = kwargs.get("min_grab_duration")
-        self.max_grab_duration = kwargs.get("max_grab_duration")
+        self.lookahead = kwargs.get("lookahead", 2)
+        self.min_grab_duration = kwargs.get("min_grab_duration", 15)
+        self.max_grab_duration = kwargs.get("max_grab_duration", 240)
 
         # Fix-ordered Curriculum
         self.max_curriculum = 1
