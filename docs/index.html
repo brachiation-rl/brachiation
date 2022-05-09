@@ -444,6 +444,7 @@
           return debounced;
         })();
 
+        app.ticker.maxFPS = 60;
         app.ticker.add(async (delta) => {
           if (PAUSE_PLAYBACK) { return; }
 
