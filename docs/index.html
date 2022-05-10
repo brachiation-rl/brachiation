@@ -72,8 +72,7 @@
         height: auto;
       }
 
-      #videoholder {
-        /* background-color: #000; */
+      lite-youtube {
         position: relative;
         display: block;
         contain: content;
@@ -83,7 +82,7 @@
         cursor: pointer;
       }
 
-      #videoholder::before {
+      lite-youtube::before {
         content: '';
         display: block;
         position: absolute;
@@ -97,13 +96,22 @@
         transition: all .2s cubic-bezier(0,0,.2,1);
       }
 
-      #videoholder::after {
+      lite-youtube::after {
         content: "";
         display: block;
         padding-bottom: 56.25%;
       }
 
-      #videoholder>.lty-playbtn {
+      lite-youtube>iframe {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: 0;
+      }
+
+      lite-youtube>.lty-playbtn {
         width: 70px;
         height: 46px;
         background-color: #212121;
@@ -115,23 +123,32 @@
         cursor: pointer;
       }
 
-      #videoholder:hover>.lty-playbtn {
+      lite-youtube:hover>.lty-playbtn {
         background-color: red;
         opacity: 1;
       }
 
-      #videoholder>.lty-playbtn:before {
+      lite-youtube>.lty-playbtn:before {
         content: "";
         border-style: solid;
         border-width: 11px 0 11px 19px;
         border-color: transparent transparent transparent #fff;
       }
 
-      #videoholder>.lty-playbtn,#videoholder>.lty-playbtn:before {
+      lite-youtube>.lty-playbtn,lite-youtube>.lty-playbtn:before {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate3d(-50%,-50%,0);
+      }
+
+      lite-youtube.lyt-activated {
+        cursor: unset;
+      }
+
+      lite-youtube.lyt-activated::before,lite-youtube.lyt-activated>.lty-playbtn {
+        opacity: 0;
+        pointer-events: none;
       }
 
       .keycap {
@@ -149,6 +166,7 @@
       }
     </style>
 
+    <script src="static/liteyoutube.min.js"></script>
     <script src="static/pixi.min.js"></script>
   </head>
   <body>
@@ -178,10 +196,12 @@
         Brachiation is the primary form of locomotion for gibbons and siamangs, in which these primates swing from tree limb to tree limb using only their arms. It is challenging to control because of the limited control authority, the required advance planning, and the precision of the required grasps. We present a novel approach to this problem using reinforcement learning, and as demonstrated on a finger-less 14-link planar model that learns to brachiate across challenging handhold sequences. Key to our method is the use of a simplified model, a point mass with a virtual arm, for which we first learn a policy that can brachiate across handhold sequences with a prescribed order. This facilitates the learning of the policy for the full model, for which it provides guidance by providing an overall center-of-mass trajectory to imitate, as well as for the timing of the holds. Lastly, the simplified model can also readily be used for planning suitable sequences of handholds in a given environment. Our results demonstrate brachiation motions with a variety of durations for the flight and hold phases, as well as emergent extra back-and-forth swings when this proves useful. The system is evaluated with a variety of ablations. The method enables future work towards more general 3D brachiation, as well as using simplified model imitation in other settings.
       </p>
 
-      <h2>Video (coming soon!)</h2>
-      <div id="videoholder" style="background-image: url('static/assets/og-brachiation.svg');">
-        <button type="button" class="lty-playbtn" aria-label="Play: Video"></button>
-      </div>
+      <h2>Summary</h2>
+      <p>In our two-stage imitation learning system, the simplified model allows for efficient exploration of the solution space and produces physically-feasible reference trajectories for the full model to imitate.</p>
+      <img alt="Illustration of our two-stage simplified model imitation learning system" src="static/assets/system_diagram.svg" width="1779" height="756">
+
+      <h2>Video</h2>
+      <lite-youtube videoid="um0SSwN8xNA" poster="static/assets/og-brachiation.svg"></lite-youtube>
 
       <h2>Gibbon Conservation</h2>
       <p>
