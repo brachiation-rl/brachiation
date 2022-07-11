@@ -47,7 +47,7 @@ python run_simplified.py --mode play --net data/best_simple.pt
 ```
 
 Run and visualize full model planning.
-This mode is slow on when simulating on CPU; if needed, reduce the number of parallel simulations on [L61](https://github.com/brachiation-rl/brachiation/blob/b080341bb2c7c1f0fe603c9819db6aa20fac59f6/run_full.py#L461) in run_full.py.
+This mode is slow when simulating on CPU; if needed, reduce the number of parallel simulations on [L61](https://github.com/brachiation-rl/brachiation/blob/b080341bb2c7c1f0fe603c9819db6aa20fac59f6/run_full.py#L461) in run_full.py.
 ```bash
 python run_full.py --mode plan --net data/best_full.pt
 ```

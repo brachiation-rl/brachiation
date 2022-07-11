@@ -2,6 +2,7 @@ scipy
 numpy
 matplotlib
 cloudpickle
-gym
+gym==0.20.0
 pybullet
 torch
+bottleneck
