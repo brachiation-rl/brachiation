@@ -23,7 +23,7 @@ pip install ./bullet3
 
 Install required packages
 ```bash
-git@github.com:brachiation-rl/brachiation.git
+git clone git@github.com:brachiation-rl/brachiation.git
 cd brachiation
 pip install -r requirements.txt
 ```
